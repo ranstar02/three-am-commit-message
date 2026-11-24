@@ -17,15 +17,24 @@ MESSAGE = (
     "and I will not do it again (until 4am)"
 )
 
-OUTPUT_PATH = "/output/entry.txt"
+OUTPUT_PATH = os.environ.get("MAKEFUN_OUTPUT", "/output/entry.txt")
+
+
+def validate_entry(message: str) -> None:
+    """A commit message entry must be exactly one line, no stray whitespace."""
+    if not 1 <= len(message) <= 200:
+        raise ValueError(
+            f"commit message must be 1-200 characters, got {len(message)}"
+        )
+    if message != message.strip():
+        raise ValueError("commit message must not start or end with whitespace")
+    if "\n" in message or "\r" in message:
+        raise ValueError("commit message must be a single line")
 
 
 def write_entry() -> str:
-    """Write MESSAGE to /output/entry.txt and verify it round-trips."""
-    if not 1 <= len(MESSAGE) <= 200:
-        raise ValueError(
-            f"commit message must be 1-200 characters, got {len(MESSAGE)}"
-        )
+    """Write MESSAGE to the output path and verify it round-trips."""
+    validate_entry(MESSAGE)
     target = OUTPUT_PATH
     try:
         os.makedirs(os.path.dirname(target), exist_ok=True)
